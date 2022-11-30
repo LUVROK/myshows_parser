@@ -22,6 +22,21 @@ const ObjectEntrize = {
   rndEl: 0,
 };
 
+let intervalId;
+
+function loading() {
+  var h = ["processing.", "processing..", "processing..."];
+  var i = 0;
+
+  intervalId = setInterval(() => {
+    i = i > 2 ? 0 : i;
+    readline.moveCursor(process.stdout, 0, -1);
+    readline.clearScreenDown(process.stdout);
+    console.log(h[i]);
+    i++;
+  }, 300);
+}
+
 const parse = async () => {
   const getHTML = async (url) => {
     try {
@@ -34,13 +49,24 @@ const parse = async () => {
 
   rl.question(`Choose one thing what data do you want to get:\n1 - Watching\n2 - Going to watch\n3 - Stopped watching\n4 - Watched all\n5 - Everything\n`, function (opt_1) {
     opt_1++;
+    readline.moveCursor(process.stdout, 0, -7);
+    readline.clearScreenDown(process.stdout);
     opt_1 < 2 || opt_1 > 7
       ? (console.log("Invalid number"), rl.close())
       : rl.question(`Enter your nickname:\n`, async function (opt_2) {
+          readline.moveCursor(process.stdout, 0, -2);
+          readline.clearScreenDown(process.stdout);
+          loading();
+          console.log("processing");
           const $ = await getHTML(`https://old.myshows.me/${opt_2.toString()}?fl=en`);
+          clearInterval(intervalId);
+          readline.moveCursor(process.stdout, 0, -1);
+          readline.clearScreenDown(process.stdout);
           $ === undefined || $ === null
             ? (console.log("Incorrect nickname"), rl.close())
             : rl.question(`What do you want to do:\n1 - Get random movie\n2 - Get a convenient table\n`, async function (opt_3) {
+                readline.moveCursor(process.stdout, 0, -4);
+                readline.clearScreenDown(process.stdout);
                 function getMovies() {
                   let _done_mass = [];
                   let _left_mass = [];

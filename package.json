@@ -1,7 +1,8 @@
 {
   "name": "myshows_parser",
-  "version": "0.0.9",
+  "version": "0.1.9",
   "private": true,
+  "license": "GNU General Public License, version 2",
   "scripts": {
     "start": "node index.js"
   },

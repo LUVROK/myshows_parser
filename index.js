@@ -111,7 +111,6 @@ const parse = async () => {
                     case "1":
                       loading();
                       console.log("processing");
-
                       await new Promise((resolve, reject) => {
                         setTimeout(function () {
                           let _done_mass = [];

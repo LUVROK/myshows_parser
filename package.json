@@ -2,7 +2,7 @@
   "name": "myshows_parser",
   "version": "0.1.9",
   "private": true,
-  "license": "GNU General Public License, version 2",
+  "license": "GNU General Public License, version 3",
   "scripts": {
     "start": "node index.js"
   },

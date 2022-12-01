@@ -1,3 +1,3 @@
-[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![License: GPL v3](https://choosealicense.com/licenses/gpl-3.0/)
 
 # myshows parser

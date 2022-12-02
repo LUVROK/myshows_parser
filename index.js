@@ -4,11 +4,18 @@ const https = require("https");
 let fs = require("fs");
 let prompt = require("prompt");
 const readline = require("readline");
+// var casper = require('casper').create();
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+function DataUser(title, Episodes_watched_done, Episodes_watched_done) {
+  this.title = title;
+  this.Episodes_watched_done = Episodes_watched_done;
+  this.Episodes_watched_done = Episodes_watched_done;
+}
 
 function getRandomArbitrary(min, max) {
   min = Math.ceil(min);
@@ -69,11 +76,23 @@ const parse = async () => {
         ObjectEntrize.jqueryRight = ".showProgress ._done";
         break;
       case "2":
-        site = ``;
-        ObjectEntrize.jquerySearch = ".UserShowItem-header__top";
-        ObjectEntrize.jqueryA = ".UserShowItem-title";
-        ObjectEntrize.jqueryLeft = ".UserShowItem-watched";
-        ObjectEntrize.jqueryRight = ".Progress-secondary:last-of-child";
+        //
+        // site = `en.`;
+        // ObjectEntrize.jquerySearch = ".UserShowItem-header__top";
+        // ObjectEntrize.jqueryA = ".UserShowItem-title";
+        // ObjectEntrize.jqueryLeft = ".Progress-secondary .UserShowItem-watched";
+        // ObjectEntrize.jqueryRight = ".Progress-secondary";
+
+        // casper.start("http://google.fr/", function () {
+        //   // search for 'casperjs' from google form
+        //   this.fill('form[action="/search"]', { q: "casperjs" }, true);
+        // });
+
+        site = `old.`;
+        ObjectEntrize.jquerySearch = ".tabs_cont";
+        ObjectEntrize.jqueryA = "td a";
+        ObjectEntrize.jqueryLeft = ".showProgress ._left";
+        ObjectEntrize.jqueryRight = ".showProgress ._done";
         break;
       case "3":
         console.log("exit"), rl.close();
@@ -97,7 +116,8 @@ const parse = async () => {
             readline.clearScreenDown(process.stdout);
             loading();
             console.log("processing");
-            const $ = await getHTML(`https://${site}myshows.me/${opt_2.toString()}?fl=en`);
+            let $ = await getHTML(`https://${site}myshows.me/${opt_2.toString()}${site !== "en." ? "?fl=en" : ""}`);
+            $ === undefined || $ === null ? (opt_2.toString().slice(-1) === "/" ? ($ = await getHTML(`${opt_2.toString().slice(0, -1)}${site !== "en." ? "?fl=en" : ""}`)) : ($ = await getHTML(`${opt_2.toString()}${site !== "en." ? "?fl=en" : ""}`))) : null;
             clearInterval(ObjectEntrize.intervalId);
             readline.moveCursor(process.stdout, 0, -1);
             readline.clearScreenDown(process.stdout);
@@ -179,8 +199,19 @@ const parse = async () => {
                         }, 2000);
                       });
 
-                      console.log(ObjectEntrize.data);
-                      console.log("your choose is 2"), rl.close();
+                      console.log("\n---------------------------------------------------------------------------------\nTitle" + "\t\t\t\t\t\t|  " + "Watched done" + " |" + "  Watched left" + " |");
+                      console.log(`---------------------------------------------------------------------------------`);
+                      console.log(5 * "5");
+                      // let massData = [];
+                      await ObjectEntrize.data.map((data, i) => {
+                        data.title = `${data.title.length < 42 ? data.title : data.title.slice(0, 41).slice(-1) === " " ? data.title.slice(0, 40) + "..." : data.title.slice(0, 41) + "..."}`;
+                        console.log(data.title + `${data.title.length < 8 ? "\t\t\t\t\t\t|\t" : data.title.length >= 16 && data.title.length < 24 ? "\t\t\t\t|\t" : data.title.length >= 24 && data.title.length < 32 ? "\t\t\t|\t" : data.title.length >= 32 && data.title.length < 38 ? "\t\t|\t" : data.title.length >= 38 && data.title.length < 46 ? "\t|\t" : "\t\t\t\t\t|\t"}` + data.Episodes_watched_done + "\t|\t" + data.Episodes_watched_left + "\t|");
+                        console.log(`---------------------------------------------------------------------------------`);
+                        // massData.push(new DataUser(data.title, data.Episodes_watched_done, data.Episodes_watched_left));
+                      });
+                      // console.table(massData);
+
+                      rl.close();
                       break;
                     case "3":
                       console.log("exit"), rl.close();

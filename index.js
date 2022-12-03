@@ -1,10 +1,8 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const https = require("https");
-let fs = require("fs");
-let prompt = require("prompt");
+const fs = require("fs");
 const readline = require("readline");
-// var casper = require('casper').create();
+const XLSX = require("xlsx");
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -32,6 +30,7 @@ const ObjectEntrize = {
   jqueryLeft: "",
   jqueryRight: "",
   intervalId: "",
+  columns: ["title", "Episodes_watched_done", "Episodes_watched_left"],
 };
 let site;
 
@@ -123,8 +122,8 @@ const parse = async () => {
             readline.clearScreenDown(process.stdout);
             $ === undefined || $ === null
               ? (console.log("Incorrect nickname"), rl.close())
-              : rl.question(`What do you want to do:\n1 - Get random movie\n2 - Get a convenient table\n3 - exit\n`, async function (opt_3) {
-                  readline.moveCursor(process.stdout, 0, -5);
+              : rl.question(`What do you want to do:\n1 - Get random movie\n2 - Get a convenient table\n3 - Statistics by day\n4 - exit\n`, async function (opt_3) {
+                  readline.moveCursor(process.stdout, 0, -6);
                   readline.clearScreenDown(process.stdout);
 
                   switch (opt_3) {
@@ -189,9 +188,8 @@ const parse = async () => {
                               ObjectEntrize.counter++;
                             }
                             if (i === LASTELEMENT) {
-                              console.log(ObjectEntrize.counter);
                               clearInterval(ObjectEntrize.intervalId);
-                              readline.moveCursor(process.stdout, 0, -2);
+                              readline.moveCursor(process.stdout, 0, -1);
                               readline.clearScreenDown(process.stdout);
                               resolve("");
                             }
@@ -201,19 +199,134 @@ const parse = async () => {
 
                       console.log("\n---------------------------------------------------------------------------------\nTitle" + "\t\t\t\t\t\t|  " + "Watched done" + " |" + "  Watched left" + " |");
                       console.log(`---------------------------------------------------------------------------------`);
-                      console.log(5 * "5");
-                      // let massData = [];
                       await ObjectEntrize.data.map((data, i) => {
                         data.title = `${data.title.length < 42 ? data.title : data.title.slice(0, 41).slice(-1) === " " ? data.title.slice(0, 40) + "..." : data.title.slice(0, 41) + "..."}`;
                         console.log(data.title + `${data.title.length < 8 ? "\t\t\t\t\t\t|\t" : data.title.length >= 16 && data.title.length < 24 ? "\t\t\t\t|\t" : data.title.length >= 24 && data.title.length < 32 ? "\t\t\t|\t" : data.title.length >= 32 && data.title.length < 38 ? "\t\t|\t" : data.title.length >= 38 && data.title.length < 46 ? "\t|\t" : "\t\t\t\t\t|\t"}` + data.Episodes_watched_done + "\t|\t" + data.Episodes_watched_left + "\t|");
                         console.log(`---------------------------------------------------------------------------------`);
                         // massData.push(new DataUser(data.title, data.Episodes_watched_done, data.Episodes_watched_left));
                       });
-                      // console.table(massData);
+
+                      rl.question(`Save the result?(myshowsData.xlsx):\n1 - yes\n2 - nope\n3 - exit\n`, async function (save_res) {
+                        readline.moveCursor(process.stdout, 0, -5);
+                        readline.clearScreenDown(process.stdout);
+                        switch (save_res) {
+                          case "1":
+                            const workSheet = await XLSX.utils.json_to_sheet(ObjectEntrize.data);
+                            const workBook = await XLSX.utils.book_new();
+
+                            await XLSX.utils.book_append_sheet(workBook, workSheet, "myshowsData");
+                            await XLSX.write(workBook, { bookType: "xlsx", type: "buffer" });
+                            await XLSX.write(workBook, { bookType: "xlsx", type: "binary" });
+                            await XLSX.writeFile(workBook, "myshowsData.xlsx");
+
+                            console.log("\nsave success\n");
+                            rl.close();
+                            break;
+                          case "2":
+                            console.log("exit");
+                            rl.close();
+                            break;
+                          case "3":
+                            console.log("exit");
+                            rl.close();
+                            break;
+                          default:
+                            break;
+                        }
+                      });
 
                       rl.close();
                       break;
                     case "3":
+                      loading();
+                      console.log("processing");
+
+                      await new Promise((resolve, reject) => {
+                        setTimeout(function () {
+                          let summ_watched = [],
+                            summ_series = [];
+
+                          const LASTELEMENT = $(`.statBlock table tbody tr:nth-of-type(2) ._days table tbody tr td table tbody tr td`).length;
+
+                          $(`.statBlock table tbody tr:nth-of-type(2) ._days table tbody tr td table tbody tr td div div p:nth-child(2)`).each((i, element) => {
+                            // const before_ = $(element).text().split(" ")[0] + " " + $(element).text().split(" ")[1];
+                            // const after_ = $(element).text().split(" ")[2] + " " + $(element).text().split(" ")[3];
+
+                            const before_ = $(element).text().split(" ")[0];
+                            const after_ = $(element).text().split(" ")[2];
+                            summ_watched.push(before_);
+                            summ_series.push(after_);
+                          });
+
+                          $(`.statBlock table tbody tr:nth-of-type(2) ._days table tbody tr td table tbody tr td div div p b`).each((i, element) => {
+                            if ($(element).text().includes("2021")) {
+                              var temp = $(element).text().split(".");
+                              var datedd = new Date(temp[2], temp[1] - 1, temp[0]);
+
+                              var month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][datedd.getMonth()];
+                              var str = datedd.getDate() + " " + month + " " + datedd.getFullYear();
+
+                              ObjectEntrize.data.push({
+                                data_Date: str,
+                                summ_watched_min: summ_watched[i],
+                                summ_series: summ_series[i],
+                              });
+                            } else {
+                              let date = new Date($(element).text());
+                              let dateNow = new Date();
+                              date.getFullYear() === dateNow.getFullYear() - 1 ? null : date.setFullYear(dateNow.getFullYear());
+                              var month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()];
+                              var str = date.getDate() + " " + month + " " + date.getFullYear();
+
+                              ObjectEntrize.data.push({
+                                data_Date: str,
+                                summ_watched_min: summ_watched[i],
+                                summ_series: summ_series[i],
+                              });
+                            }
+                          });
+                          $(`.statBlock table tbody tr:nth-of-type(2) ._days table tbody tr td table tbody tr td`).each((i, element) => {
+                            if (i === LASTELEMENT - 1) {
+                              clearInterval(ObjectEntrize.intervalId);
+                              readline.clearScreenDown(process.stdout);
+                              resolve("");
+                            }
+                          });
+                        }, 2000);
+                      });
+
+                      console.log(ObjectEntrize.data);
+
+                      rl.question(`Save the result?(myshowsDataStat.xlsx):\n1 - yes\n2 - nope\n3 - exit\n`, async function (save_res) {
+                        readline.moveCursor(process.stdout, 0, -5);
+                        readline.clearScreenDown(process.stdout);
+                        switch (save_res) {
+                          case "1":
+                            const workSheet = await XLSX.utils.json_to_sheet(ObjectEntrize.data);
+                            const workBook = await XLSX.utils.book_new();
+
+                            await XLSX.utils.book_append_sheet(workBook, workSheet, "myshowsDataStat");
+                            await XLSX.write(workBook, { bookType: "xlsx", type: "buffer" });
+                            await XLSX.write(workBook, { bookType: "xlsx", type: "binary" });
+                            await XLSX.writeFile(workBook, "myshowsDataStat.xlsx");
+
+                            console.log("\nsave success\n");
+                            rl.close();
+                            break;
+                          case "2":
+                            console.log("exit");
+                            rl.close();
+                            break;
+                          case "3":
+                            console.log("exit");
+                            rl.close();
+                            break;
+                          default:
+                            break;
+                        }
+                      });
+                      break;
+                    case "4":
                       console.log("exit"), rl.close();
                       break;
                     default:

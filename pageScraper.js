@@ -3,10 +3,12 @@ const scraperObject = {
   async scraper(browser, category) {
     let page = await browser.newPage();
     // console.log(`Navigating to ${this.url}...`);
+
     await page.goto(this.url);
 
     await Promise.all([await page.click(".User-showsMore"), await page.waitForNavigation({ waitUntil: "networkidle2" })]);
     const el3 = await page.click(".User-showsMore");
+    // await page.click(".Page-main .User-shows .Container .User-showsMore");
 
     let pagePromise = () =>
       new Promise(async (resolve, reject) => {
@@ -55,6 +57,8 @@ const scraperObject = {
       });
 
     const after_data = await pagePromise3();
+
+    console.log(3)
 
     // const before_ = $(element).text().split(" ")[0] + " " + $(element).text().split(" ")[1];
     // const after_ = $(element).text().split(" ")[2] + " " + $(element).text().split(" ")[3];

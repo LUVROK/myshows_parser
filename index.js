@@ -1,10 +1,6 @@
 const readline = require("readline");
 const XLSX = require("xlsx");
 const { initial_cheerio, clearStr, getRandomArbitrary } = require("./baseds_function");
-const Browser = require("zombie");
-var user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 (KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20";
-var browser = new Browser({ userAgent: user_agent, debug: true, waitFor: 10000 });
-const { startBrowser } = require("./puppeteer_start");
 const browserObject = require("./puppeteer_start");
 const scraperController = require("./pageController");
 const pageScraper = require("./pageScraper");

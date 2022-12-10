@@ -6,9 +6,11 @@ async function scrapeAll(browserInstance) {
     let scrapedData = {};
     scrapedData = await pageScraper.scraper(browser);
     await browser.close();
-    console.log(scrapedData);
+    // console.log(scrapedData);
+    return scrapedData;
   } catch (err) {
     console.log("Could not resolve the browser instance => ", err);
   }
 }
+
 module.exports = (browserInstance) => scrapeAll(browserInstance);

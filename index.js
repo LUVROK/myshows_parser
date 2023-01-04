@@ -1,12 +1,12 @@
 const readline = require("readline");
 const XLSX = require("xlsx");
-const { initial_cheerio, clearStr, getRandomArbitrary } = require("./baseds_function");
+const { initial_cheerio, clearStr, getRandomArbitrary, readFile, writeFile } = require("./baseds_function");
 const browserObject = require("./puppeteer_start");
 const scraperController = require("./pageController");
 const pageScraper = require("./pageScraper");
 const chalk = require("chalk");
 
-const ObjectEntrize = {
+let ObjectEntrize = {
   counter: 0,
   data: [],
   rndEl: 0,
@@ -46,19 +46,8 @@ async function save_XLXS(dataSave, namedFile) {
 async function promiseData_UserData($, opt_1) {
   let _done_mass = [];
   let _left_mass = [];
-
-  console.log(`${ObjectEntrize.jquerySearch} ${ObjectEntrize.jqueryA}`);
-  console.log(`${ObjectEntrize.jquerySearch} ${ObjectEntrize.jqueryA}`);
-  console.log(`${ObjectEntrize.jquerySearch} ${ObjectEntrize.jqueryA}`);
-  console.log(`${ObjectEntrize.jquerySearch} ${ObjectEntrize.jqueryA}`);
-
   const LASTELEMENT = $(`${ObjectEntrize.jquerySearch} ${ObjectEntrize.jqueryA}`).length - 2;
   let LASTELEMENT2 = 0;
-
-  console.log(LASTELEMENT);
-  console.log(LASTELEMENT);
-  console.log(LASTELEMENT);
-  console.log(LASTELEMENT);
 
   await new Promise((resolve, reject) => {
     setTimeout(async function () {
@@ -93,8 +82,6 @@ async function promiseData_UserData($, opt_1) {
         LASTELEMENT2++;
       } else {
       }
-      console.log(LASTELEMENT);
-      console.log(i);
       if (i === LASTELEMENT) {
         clearInterval(ObjectEntrize.intervalId);
         clearStr(1);
@@ -117,16 +104,12 @@ async function promiseData($, opt_1) {
 
       $(`${ObjectEntrize.jquerySearch}${opt_1} ${ObjectEntrize.jqueryLeft}`).each((i1, element) => {
         _left_mass.push($(element).text());
-        // console.log($(element).text());
       });
       $(`${ObjectEntrize.jquerySearch}${opt_1} ${ObjectEntrize.jqueryRight}`).each((i1, element) => {
         _done_mass.push($(element).text());
-        // console.log(`${ObjectEntrize.jquerySearch}${opt_1} ${ObjectEntrize.jqueryLeft}`);
-        // console.log(_left_mass[i1] + "  " + $(element).text());
       });
       $(`${ObjectEntrize.jquerySearch}${opt_1} ${ObjectEntrize.jqueryA}`).each((i, element) => {
         if (!$(element).text().includes("Show others")) {
-          // console.log(!$(element).text().includes("Show others"));
           ObjectEntrize.data.push({ title: $(element).text(), Episodes_watched_done: _done_mass[LASTELEMENT2], Episodes_watched_left: _left_mass[LASTELEMENT2] });
           ObjectEntrize.counter++;
           LASTELEMENT2++;
@@ -235,7 +218,8 @@ const Enter_your_nickname2 = (opt_1, opt_3) => {
               console.log(`----------------------------------\n`);
               console.log(`----------------------------------\nTotal movies - ${ObjectEntrize.counter}`);
               console.log(`----------------------------------\n`);
-              rl.close();
+              await writeFile("./lol.json", ObjectEntrize);
+              againGetRandom($, opt_1, opt_3);
               break;
             case "2":
               await promiseData($, opt_1);
@@ -258,6 +242,26 @@ const Enter_your_nickname2 = (opt_1, opt_3) => {
         })();
   });
 };
+
+function againGetRandom($, opt_1, opt_3) {
+  rl.question(`Generate the series again:\n1 - Generate\n2 - exit\n`, async function (opt_4) {
+    switch (opt_4) {
+      case "1":
+        ObjectEntrize.rndEl = await getRandomArbitrary(0, ObjectEntrize.data.length);
+        opt_3 === "1" ? (console.log(`\n----------------------------------\nRandom movie`), console.log(`----------------------------------`), console.log(`Index - ${ObjectEntrize.rndEl}`), console.log(`----------------------------------`), console.log(`Title - ${ObjectEntrize.data[ObjectEntrize.rndEl].title}`)) : null;
+        console.log(`----------------------------------\n`);
+        console.log(`----------------------------------\nTotal movies - ${ObjectEntrize.counter}`);
+        console.log(`----------------------------------\n`);
+        againGetRandom($, opt_1, opt_3);
+        break;
+      case "2":
+        console.log("\nexit"), rl.close();
+        break;
+      default:
+        againGetRandom($, opt_1, opt_3);
+    }
+  });
+}
 
 const Enter_your_nickname1 = (opt_3) => {
   rl.question(`Enter your nickname:\n`, async function (opt_2) {
@@ -488,6 +492,32 @@ const parse = async () => {
   });
 };
 
+const readFileHistory = async () => {
+  try {
+    await rl.question(`1 - Use data from past requests\n2 - Update account data\n3 - exit\n`, async function (opt_fs) {
+      switch (opt_fs) {
+        case "1":
+          let datad = await readFile("./lol.json");
+          ObjectEntrize = datad;
+          clearStr(4);
+          break;
+        case "2":
+          parse();
+          break;
+        case "3":
+          console.log("exit"), rl.close();
+          break;
+        default:
+          console.log("Invalid number"), readFileHistory();
+          break;
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+// readFileHistory();
 parse();
 
 rl.on("close", function () {
